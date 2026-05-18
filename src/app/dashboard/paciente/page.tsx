@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import type { User, PatientProfile, Appointment, MedicationReminder, HealthMetric, CoachingSession } from "@/types";
+import type { User, PatientProfile, Appointment, MedicationReminder, HealthMetric, CoachingSession, Subscription } from "@/types";
 
 import PatientTopbar from "@/components/patient/PatientTopbar";
 import PatientSidebar from "@/components/patient/PatientSidebar";
@@ -14,6 +14,7 @@ import CoachingCard from "@/components/patient/CoachingCard";
 import PillOrganizer from "@/components/patient/PillOrganizer";
 import WellnessPrograms from "@/components/patient/WellnessPrograms";
 import ClinicalHistory from "@/components/patient/ClinicalHistory";
+import SubscriptionBanner from "@/components/patient/SubscriptionBanner";
 
 export default async function PacienteDashboard() {
   const supabase = await createClient();
@@ -38,12 +39,14 @@ export default async function PacienteDashboard() {
     { data: medications },
     { data: metrics },
     { data: coachingSessions },
+    { data: subscription },
   ] = await Promise.all([
     supabase.from("patient_profiles").select("*").eq("user_id", authUser.id).single(),
     supabase.from("appointments").select("*").eq("patient_id", authUser.id).order("scheduled_at", { ascending: true }),
     supabase.from("medications_reminders").select("*").eq("patient_id", authUser.id).eq("active", true),
     supabase.from("health_metrics").select("*").eq("patient_id", authUser.id).order("recorded_at", { ascending: false }).limit(1),
     supabase.from("coaching_sessions").select("*").gte("scheduled_at", new Date().toISOString()).order("scheduled_at", { ascending: true }).limit(5),
+    supabase.from("subscriptions").select("*").eq("user_id", authUser.id).maybeSingle(),
   ]);
 
   const upcomingAppointments = (appointments ?? []).filter(
@@ -91,6 +94,9 @@ export default async function PacienteDashboard() {
               </svg>
             </div>
           </Link>
+
+          {/* ── Suscripción ── */}
+          <SubscriptionBanner subscription={(subscription ?? null) as Subscription | null} />
 
           {/* ── Calendario ── */}
           <AppointmentCalendar appointments={upcomingAppointments} />
