@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/middleware";
 
 // Rutas públicas que no requieren autenticación
-const PUBLIC_ROUTES = ["/", "/login", "/auth/callback", "/auth/confirm"];
+const PUBLIC_ROUTES = ["/", "/login", "/auth/callback", "/auth/confirm", "/pricing"];
 
 // Rutas por rol
 const ROLE_ROUTES: Record<string, string[]> = {
@@ -11,8 +11,7 @@ const ROLE_ROUTES: Record<string, string[]> = {
   admin:    ["/dashboard/admin"],
 };
 
-// Next.js 16: la función se llama "proxy" (antes "middleware")
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { supabase, supabaseResponse } = createClient(request);
 
@@ -48,11 +47,6 @@ export async function proxy(request: NextRequest) {
     if (isTryingForeignRoute) {
       return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url));
     }
-  }
-
-  // Si está en / y tiene sesión → redirigir a su dashboard
-  if (pathname === "/" && role) {
-    return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url));
   }
 
   return supabaseResponse;
