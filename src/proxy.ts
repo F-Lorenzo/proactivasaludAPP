@@ -11,7 +11,8 @@ const ROLE_ROUTES: Record<string, string[]> = {
   admin:    ["/dashboard/admin"],
 };
 
-export async function middleware(request: NextRequest) {
+// Next.js 16: la función se llama "proxy" (antes "middleware")
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { supabase, supabaseResponse } = createClient(request);
 
@@ -38,13 +39,12 @@ export async function middleware(request: NextRequest) {
 
   const role = userData?.role as keyof typeof ROLE_ROUTES | undefined;
 
-  // Protección por rol: si el usuario intenta acceder a ruta de otro rol → redirigir a su dashboard
+  // Protección por rol
   if (role) {
     const otherRoles = Object.keys(ROLE_ROUTES).filter((r) => r !== role) as Array<keyof typeof ROLE_ROUTES>;
     const isTryingForeignRoute = otherRoles.some((r) =>
       ROLE_ROUTES[r].some((route) => pathname.startsWith(route))
     );
-
     if (isTryingForeignRoute) {
       return NextResponse.redirect(new URL(`/dashboard/${role}`, request.url));
     }
@@ -60,13 +60,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Aplica a todas las rutas EXCEPTO:
-     * - _next/static (archivos estáticos)
-     * - _next/image (imágenes optimizadas)
-     * - favicon.ico
-     * - public assets
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
