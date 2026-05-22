@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PLANS, formatPrice } from "@/lib/stripe";
+import { PLANS, LATAM_COUNTRIES } from "@/lib/mercadopago";
+import Link from "next/link";
 
 export default function PricingPage() {
   const router = useRouter();
@@ -11,14 +12,14 @@ export default function PricingPage() {
   async function handleSubscribe(plan: "basic" | "premium") {
     setLoading(plan);
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch("/api/mercadopago/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
       const data = await res.json();
-      if (data.url) {
-        router.push(data.url);
+      if (data.init_point) {
+        window.location.href = data.init_point;
       } else {
         alert("Error al procesar el pago. Intentá de nuevo.");
       }
@@ -33,17 +34,19 @@ export default function PricingPage() {
     <div className="min-h-screen bg-[#f0f4f8] flex flex-col">
       {/* Header */}
       <header className="h-14 bg-white border-b border-slate-200 flex items-center px-5 gap-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center">
-          <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-            <path d="M9 3v12M5 7h8M3 11h12" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
-          </svg>
-        </div>
-        <span className="text-sm font-bold text-slate-900">Proactiva Salud</span>
+        <Link href="/" className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+              <path d="M9 3v12M5 7h8M3 11h12" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <span className="text-sm font-bold text-slate-900">Proactiva Salud</span>
+        </Link>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-16">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         {/* Hero */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <span className="inline-block text-xs font-semibold text-green-600 bg-green-50 border border-green-200 px-3 py-1 rounded-full mb-4">
             14 días gratis · Sin tarjeta requerida
           </span>
@@ -51,8 +54,16 @@ export default function PricingPage() {
             Elegí tu plan de salud
           </h1>
           <p className="text-slate-500 text-lg max-w-xl mx-auto">
-            Accedé a tu equipo médico, IA de salud y coaching de bienestar. Cancelá cuando quieras.
+            Pagá con MercadoPago. Disponible en toda Latinoamérica.
           </p>
+          {/* Países */}
+          <div className="flex flex-wrap justify-center gap-2 mt-4">
+            {LATAM_COUNTRIES.map((c) => (
+              <span key={c.code} className="text-sm bg-white border border-slate-100 rounded-full px-2.5 py-0.5 text-slate-600">
+                {c.flag} {c.name}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Cards */}
@@ -62,18 +73,17 @@ export default function PricingPage() {
             <div className="mb-6">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Basic</p>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-slate-900">
-                  {formatPrice(PLANS.basic.price)}
-                </span>
+                <span className="text-4xl font-bold text-slate-900">USD {PLANS.basic.priceUSD}</span>
                 <span className="text-slate-400 text-sm">/mes</span>
               </div>
-              <p className="text-sm text-slate-500 mt-2">Para empezar tu camino de salud</p>
+              <p className="text-sm text-slate-500 mt-1">Aprox. ${PLANS.basic.priceARS.toLocaleString("es-AR")} ARS</p>
+              <p className="text-sm text-slate-500 mt-1">Para empezar tu camino de salud</p>
             </div>
 
             <ul className="flex flex-col gap-3 flex-1 mb-8">
               {PLANS.basic.features.map((f) => (
                 <li key={f} className="flex items-center gap-3 text-sm text-slate-700">
-                  <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 text-xs">✓</span>
+                  <span className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
                   {f}
                 </li>
               ))}
@@ -84,15 +94,14 @@ export default function PricingPage() {
               disabled={!!loading}
               className="w-full py-3 rounded-xl border-2 border-slate-900 text-slate-900 font-semibold text-sm hover:bg-slate-900 hover:text-white transition-colors disabled:opacity-50"
             >
-              {loading === "basic" ? "Procesando..." : "Empezar con Basic"}
+              {loading === "basic" ? "Redirigiendo a MercadoPago..." : "Empezar con Basic"}
             </button>
           </div>
 
           {/* Premium */}
           <div className="bg-gradient-to-br from-blue-600 to-green-500 rounded-2xl p-8 flex flex-col relative overflow-hidden shadow-xl shadow-blue-500/20">
-            {/* decorative */}
             <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10" />
-            <div className="absolute -bottom-10 -left-6 w-40 h-40 rounded-full bg-white/05" />
+            <div className="absolute -bottom-10 -left-6 w-40 h-40 rounded-full bg-white/5" />
 
             <div className="mb-6 relative z-10">
               <div className="flex items-center gap-2 mb-2">
@@ -100,18 +109,17 @@ export default function PricingPage() {
                 <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full font-semibold">Recomendado</span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-white">
-                  {formatPrice(PLANS.premium.price)}
-                </span>
+                <span className="text-4xl font-bold text-white">USD {PLANS.premium.priceUSD}</span>
                 <span className="text-white/70 text-sm">/mes</span>
               </div>
-              <p className="text-sm text-white/80 mt-2">Todo lo que necesitás para vivir mejor</p>
+              <p className="text-sm text-white/70 mt-1">Aprox. ${PLANS.premium.priceARS.toLocaleString("es-AR")} ARS</p>
+              <p className="text-sm text-white/80 mt-1">Todo lo que necesitás para vivir mejor</p>
             </div>
 
             <ul className="flex flex-col gap-3 flex-1 mb-8 relative z-10">
               {PLANS.premium.features.map((f) => (
                 <li key={f} className="flex items-center gap-3 text-sm text-white">
-                  <span className="w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center flex-shrink-0 text-xs">✓</span>
+                  <span className="w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
                   {f}
                 </li>
               ))}
@@ -122,19 +130,18 @@ export default function PricingPage() {
               disabled={!!loading}
               className="w-full py-3 rounded-xl bg-white text-blue-600 font-bold text-sm hover:bg-white/90 transition-colors disabled:opacity-50 relative z-10"
             >
-              {loading === "premium" ? "Procesando..." : "Empezar con Premium"}
+              {loading === "premium" ? "Redirigiendo a MercadoPago..." : "Empezar con Premium"}
             </button>
           </div>
         </div>
 
-        {/* Footer note */}
-        <p className="text-center text-xs text-slate-400 mt-8 max-w-md">
-          Al suscribirte aceptás los{" "}
-          <a href="#" className="underline hover:text-slate-600">términos de servicio</a>
-          {" "}y la{" "}
-          <a href="#" className="underline hover:text-slate-600">política de privacidad</a>.
-          Podés cancelar tu suscripción en cualquier momento desde tu cuenta.
-        </p>
+        {/* MP Badge */}
+        <div className="flex items-center gap-2 mt-8 text-slate-400 text-xs">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Pagos procesados de forma segura por MercadoPago · Cancelá cuando quieras
+        </div>
       </main>
     </div>
   );

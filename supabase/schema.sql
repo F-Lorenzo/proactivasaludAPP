@@ -128,10 +128,9 @@ CREATE TABLE IF NOT EXISTS public.coaching_sessions (
 CREATE TABLE IF NOT EXISTS public.subscriptions (
   id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id                 UUID NOT NULL UNIQUE REFERENCES public.users(id) ON DELETE CASCADE,
-  stripe_customer_id      TEXT UNIQUE,
-  stripe_subscription_id  TEXT UNIQUE,
+  mp_subscription_id      TEXT UNIQUE,               -- ID de preapproval en MercadoPago
   plan                    TEXT CHECK (plan IN ('basic', 'premium')) DEFAULT 'basic',
-  status                  TEXT CHECK (status IN ('active', 'canceled', 'past_due', 'trialing')) DEFAULT 'trialing',
+  status                  TEXT CHECK (status IN ('active', 'canceled', 'past_due', 'pending', 'trialing')) DEFAULT 'pending',
   period_end              TIMESTAMPTZ,
   created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW()

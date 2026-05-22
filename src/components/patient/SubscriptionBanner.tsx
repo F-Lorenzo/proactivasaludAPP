@@ -11,8 +11,8 @@ interface Props {
 export default function SubscriptionBanner({ subscription }: Props) {
   const [portalLoading, setPortalLoading] = useState(false);
 
-  // Ya tiene plan activo — mostrar estado
-  if (subscription && subscription.status === "active") {
+  // Ya tiene plan activo
+  if (subscription && (subscription.status === "active")) {
     const isPremium = subscription.plan === "premium";
     const periodEnd = subscription.period_end
       ? new Date(subscription.period_end).toLocaleDateString("es-AR", { day: "numeric", month: "long" })
@@ -45,7 +45,7 @@ export default function SubscriptionBanner({ subscription }: Props) {
           onClick={async () => {
             setPortalLoading(true);
             try {
-              const res = await fetch("/api/stripe/portal", { method: "POST" });
+              const res = await fetch("/api/mercadopago/portal", { method: "POST" });
               const data = await res.json();
               if (data.url) window.location.href = data.url;
             } finally {
@@ -65,7 +65,7 @@ export default function SubscriptionBanner({ subscription }: Props) {
     );
   }
 
-  // Sin plan o cancelado — CTA para suscribirse
+  // Sin plan o pendiente — CTA para suscribirse
   return (
     <Link
       href="/pricing"
@@ -78,7 +78,7 @@ export default function SubscriptionBanner({ subscription }: Props) {
       </div>
       <div className="flex-1">
         <p className="text-sm font-bold text-slate-900">Activá tu plan de salud</p>
-        <p className="text-xs text-slate-400">14 días gratis · Cancelá cuando quieras</p>
+        <p className="text-xs text-slate-400">14 días gratis · Pagá con MercadoPago · Cancelá cuando quieras</p>
       </div>
       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

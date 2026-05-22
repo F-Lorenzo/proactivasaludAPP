@@ -11,7 +11,7 @@ const ROLE_ROUTES: Record<string, string[]> = {
   admin:    ["/dashboard/admin"],
 };
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const { supabase, supabaseResponse } = createClient(request);
 
